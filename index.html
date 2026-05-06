@@ -1,65 +1,113 @@
 <!DOCTYPE html><html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Jogo de Emoções
-Escola</title>
-<style>
+<title>Jogo de Emoções</title><style>
 body {
 margin: 0;
-font-family: Arial, sans-serif;
-background: linear-gradient(135deg, #1e2a38, #2e3f55);
-color: white;
-display: flex;
-justify-content: center;
-align-items: center;
+font-family: 'Segoe UI', sans-serif;
+background: radial-gradient(circle at top, #1b2735, #090a0f);
 height: 100vh;
-}#game {
-width: 400px;
-background: rgba(0,0,0,0.6);
-padding: 20px;
-border-radius: 15px;
-box-shadow: 0 0 20px rgba(0,0,0,0.5);
-text-align: center;
+display: flex;
+align-items: center;
+justify-content: center;
+overflow: hidden;
 }
+
+/* efeito de fundo suave */
+body::before {
+content: "";
+position: absolute;
+width: 600px;
+height: 600px;
+background: #4da6ff;
+filter: blur(150px);
+opacity: 0.2;
+top: -100px;
+left: -100px;
+}
+
+#game {
+width: 420px;
+padding: 25px;
+border-radius: 20px;
+background: rgba(255,255,255,0.05);
+backdrop-filter: blur(15px);
+box-shadow: 0 0 40px rgba(0,0,0,0.5);
+text-align: center;
+animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+from {opacity:0; transform: translateY(10px);}
+to {opacity:1; transform: translateY(0);}
+}
+
 h2 {
 margin-bottom: 10px;
 }
 
 p {
-font-size: 14px;
-color: #ddd;
+color: #ccc;
 }
 
+/* barras */
+.bar {
+height: 10px;
+border-radius: 10px;
+background: #333;
+margin: 8px 0;
+overflow: hidden;
+}
+
+.fill {
+height: 100%;
+transition: 0.4s;
+}
+
+.stress { background: #ff6b6b; }
+.energy { background: #4da6ff; }
+
+/* botões */
 .btn {
 display: block;
 margin: 10px 0;
-padding: 10px;
+padding: 12px;
+border-radius: 12px;
 border: none;
-border-radius: 10px;
 cursor: pointer;
-background: #4da6ff;
-color: white;
 font-weight: bold;
+background: linear-gradient(135deg, #4da6ff, #2e8ae6);
+color: white;
 transition: 0.3s;
 }
 
 .btn:hover {
-background: #2e8ae6;
+transform: scale(1.05);
+box-shadow: 0 0 10px #4da6ff;
 }
 
-#status {
-margin-top: 10px;
+/* dica */
+.tip {
+margin-top: 15px;
+padding: 10px;
+border-radius: 10px;
+background: rgba(255,255,255,0.08);
 font-size: 13px;
-color: #ccc;
+color: #ddd;
 }
 
-</style>
-</head>
-<body><div id="game">
-<h2 id="title">Bem-vindo</h2>
-<p id="text">Clique para começar seu dia na escola.</p>
+</style></head><body><div id="game">
+<h2 id="title"></h2>
+<p id="text"></p><div>
+<small>Estresse</small>
+<div class="bar"><div id="stressBar" class="fill stress"></div></div>
+
+<small>Energia</small>
+<div class="bar"><div id="energyBar" class="fill energy"></div></div>
+</div>
+
 <div id="choices"></div>
-<div id="status"></div>
+
 </div><script>
 
 let stress = 20;
@@ -67,79 +115,79 @@ let energy = 80;
 
 const scenes = {
 start: {
-title: "Manhã",
-text: "Você acorda e lembra que tem prova hoje.",
+title: "🌅 Manhã",
+text: "Você acorda e lembra da prova.",
 choices: [
-{ text: "Estudar rápido", next: "study" },
-{ text: "Ignorar e ir pra escola", next: "ignore" }
+{ text: "📚 Estudar", next: "study" },
+{ text: "😴 Ignorar", next: "ignore" }
 ]
 },
 
 study: {
-title: "Preparação",
-text: "Você revisa o conteúdo. Se sente mais preparado.",
+text: "Você revisa e se sente mais seguro.",
 effect: () => { stress -= 10; energy -= 10; },
 next: "school"
 },
 
 ignore: {
-title: "Despreocupado",
-text: "Você decide não estudar. A ansiedade aumenta.",
+text: "A ansiedade começa a crescer.",
 effect: () => { stress += 15; },
 next: "school"
 },
 
 school: {
-title: "Na Escola",
-text: "O professor anuncia a prova.",
+title: "🏫 Escola",
+text: "Hora da prova.",
 choices: [
-{ text: "Respirar fundo e tentar", next: "try" },
-{ text: "Entrar em pânico", next: "panic" }
+{ text: "😌 Respirar e tentar", next: "try" },
+{ text: "😨 Entrar em pânico", next: "panic" }
 ]
 },
 
 try: {
-title: "Controle",
-text: "Você tenta com calma. Não foi perfeito, mas conseguiu.",
+text: "Você se controla e consegue fazer.",
 effect: () => { stress -= 5; },
 next: "end_good"
 },
 
 panic: {
-title: "Ansiedade",
-text: "Você trava e não consegue focar.",
+text: "Você trava e perde o foco.",
 effect: () => { stress += 20; },
 next: "end_bad"
 },
 
 end_good: {
-title: "Fim do dia",
-text: "Você lidou bem com a situação 👍",
-tip: "Dica: respirar fundo ajuda o cérebro a se acalmar.",
+title: "✨ Bom resultado",
+text: "Você lidou bem hoje.",
+tip: "Respiração reduz ansiedade real.",
 end: true
 },
 
 end_bad: {
-title: "Fim do dia",
-text: "Foi um dia difícil 😔",
-tip: "Dica: tente pequenas pausas e peça ajuda quando precisar.",
+title: "💭 Dia difícil",
+text: "Nem sempre é fácil.",
+tip: "Pedir ajuda é uma estratégia forte.",
 end: true
 }
 };
 
+function updateBars() {
+document.getElementById("stressBar").style.width = stress + "%";
+document.getElementById("energyBar").style.width = energy + "%";
+}
+
 function render(sceneKey) {
 const scene = scenes[sceneKey];
 
-document.getElementById("title").innerText = scene.title;
+document.getElementById("title").innerText = scene.title || "";
 document.getElementById("text").innerText = scene.text;
-
-const choicesDiv = document.getElementById("choices");
-choicesDiv.innerHTML = "";
 
 if (scene.effect) scene.effect();
 
-document.getElementById("status").innerText =
-"Estresse: " + stress + " | Energia: " + energy;
+updateBars();
+
+const choicesDiv = document.getElementById("choices");
+choicesDiv.innerHTML = "";
 
 if (scene.choices) {
 scene.choices.forEach(choice => {
@@ -158,14 +206,15 @@ choicesDiv.appendChild(btn);
 }
 
 if (scene.tip) {
-const tip = document.createElement("p");
+const tip = document.createElement("div");
+tip.className = "tip";
 tip.innerText = scene.tip;
 choicesDiv.appendChild(tip);
 }
 
 if (scene.end) {
 const restart = document.createElement("button");
-restart.innerText = "Recomeçar";
+restart.innerText = "🔄 Recomeçar";
 restart.className = "btn";
 restart.onclick = () => location.reload();
 choicesDiv.appendChild(restart);
