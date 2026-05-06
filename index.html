@@ -1,0 +1,178 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Jogo de Emoções
+Escola</title>
+<style>
+body {
+margin: 0;
+font-family: Arial, sans-serif;
+background: linear-gradient(135deg, #1e2a38, #2e3f55);
+color: white;
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+}#game {
+width: 400px;
+background: rgba(0,0,0,0.6);
+padding: 20px;
+border-radius: 15px;
+box-shadow: 0 0 20px rgba(0,0,0,0.5);
+text-align: center;
+}
+h2 {
+margin-bottom: 10px;
+}
+
+p {
+font-size: 14px;
+color: #ddd;
+}
+
+.btn {
+display: block;
+margin: 10px 0;
+padding: 10px;
+border: none;
+border-radius: 10px;
+cursor: pointer;
+background: #4da6ff;
+color: white;
+font-weight: bold;
+transition: 0.3s;
+}
+
+.btn:hover {
+background: #2e8ae6;
+}
+
+#status {
+margin-top: 10px;
+font-size: 13px;
+color: #ccc;
+}
+
+</style>
+</head>
+<body><div id="game">
+<h2 id="title">Bem-vindo</h2>
+<p id="text">Clique para começar seu dia na escola.</p>
+<div id="choices"></div>
+<div id="status"></div>
+</div><script>
+
+let stress = 20;
+let energy = 80;
+
+const scenes = {
+start: {
+title: "Manhã",
+text: "Você acorda e lembra que tem prova hoje.",
+choices: [
+{ text: "Estudar rápido", next: "study" },
+{ text: "Ignorar e ir pra escola", next: "ignore" }
+]
+},
+
+study: {
+title: "Preparação",
+text: "Você revisa o conteúdo. Se sente mais preparado.",
+effect: () => { stress -= 10; energy -= 10; },
+next: "school"
+},
+
+ignore: {
+title: "Despreocupado",
+text: "Você decide não estudar. A ansiedade aumenta.",
+effect: () => { stress += 15; },
+next: "school"
+},
+
+school: {
+title: "Na Escola",
+text: "O professor anuncia a prova.",
+choices: [
+{ text: "Respirar fundo e tentar", next: "try" },
+{ text: "Entrar em pânico", next: "panic" }
+]
+},
+
+try: {
+title: "Controle",
+text: "Você tenta com calma. Não foi perfeito, mas conseguiu.",
+effect: () => { stress -= 5; },
+next: "end_good"
+},
+
+panic: {
+title: "Ansiedade",
+text: "Você trava e não consegue focar.",
+effect: () => { stress += 20; },
+next: "end_bad"
+},
+
+end_good: {
+title: "Fim do dia",
+text: "Você lidou bem com a situação 👍",
+tip: "Dica: respirar fundo ajuda o cérebro a se acalmar.",
+end: true
+},
+
+end_bad: {
+title: "Fim do dia",
+text: "Foi um dia difícil 😔",
+tip: "Dica: tente pequenas pausas e peça ajuda quando precisar.",
+end: true
+}
+};
+
+function render(sceneKey) {
+const scene = scenes[sceneKey];
+
+document.getElementById("title").innerText = scene.title;
+document.getElementById("text").innerText = scene.text;
+
+const choicesDiv = document.getElementById("choices");
+choicesDiv.innerHTML = "";
+
+if (scene.effect) scene.effect();
+
+document.getElementById("status").innerText =
+"Estresse: " + stress + " | Energia: " + energy;
+
+if (scene.choices) {
+scene.choices.forEach(choice => {
+const btn = document.createElement("button");
+btn.innerText = choice.text;
+btn.className = "btn";
+btn.onclick = () => render(choice.next);
+choicesDiv.appendChild(btn);
+});
+} else if (scene.next) {
+const btn = document.createElement("button");
+btn.innerText = "Continuar";
+btn.className = "btn";
+btn.onclick = () => render(scene.next);
+choicesDiv.appendChild(btn);
+}
+
+if (scene.tip) {
+const tip = document.createElement("p");
+tip.innerText = scene.tip;
+choicesDiv.appendChild(tip);
+}
+
+if (scene.end) {
+const restart = document.createElement("button");
+restart.innerText = "Recomeçar";
+restart.className = "btn";
+restart.onclick = () => location.reload();
+choicesDiv.appendChild(restart);
+}
+}
+
+render("start");
+
+</script></body>
+</html>
