@@ -1,227 +1,431 @@
-<!DOCTYPE html><html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Jogo de Emoções</title><style>
-body {
-margin: 0;
-font-family: 'Segoe UI', sans-serif;
-background: radial-gradient(circle at top, #1b2735, #090a0f);
-height: 100vh;
-display: flex;
-align-items: center;
-justify-content: center;
-overflow: hidden;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quiz Premium Interativo</title>
+    <style>
+        /* Reset total e prevenção de rolagem */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-/* efeito de fundo suave */
-body::before {
-content: "";
-position: absolute;
-width: 600px;
-height: 600px;
-background: #4da6ff;
-filter: blur(150px);
-opacity: 0.2;
-top: -100px;
-left: -100px;
-}
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            color: #f8fafc;
+        }
 
-#game {
-width: 420px;
-padding: 25px;
-border-radius: 20px;
-background: rgba(255,255,255,0.05);
-backdrop-filter: blur(15px);
-box-shadow: 0 0 40px rgba(0,0,0,0.5);
-text-align: center;
-animation: fadeIn 0.5s ease;
-}
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-@keyframes fadeIn {
-from {opacity:0; transform: translateY(10px);}
-to {opacity:1; transform: translateY(0);}
-}
+        /* Barra de progresso superior */
+        .barra-progresso-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 1000;
+        }
 
-h2 {
-margin-bottom: 10px;
-}
+        .barra-progresso {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #38bdf8, #6366f1);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-p {
-color: #ccc;
-}
+        /* Container principal */
+        .quiz-container {
+            width: 100%;
+            max-width: 650px;
+            min-height: 480px;
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
 
-/* barras */
-.bar {
-height: 10px;
-border-radius: 10px;
-background: #333;
-margin: 8px 0;
-overflow: hidden;
-}
+        /* Telas */
+        .tela {
+            display: none;
+            height: 100%;
+            animation: slideUp 0.4s ease forwards;
+        }
 
-.fill {
-height: 100%;
-transition: 0.4s;
-}
+        .tela.ativa {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
 
-.stress { background: #ff6b6b; }
-.energy { background: #4da6ff; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-/* botões */
-.btn {
-display: block;
-margin: 10px 0;
-padding: 12px;
-border-radius: 12px;
-border: none;
-cursor: pointer;
-font-weight: bold;
-background: linear-gradient(135deg, #4da6ff, #2e8ae6);
-color: white;
-transition: 0.3s;
-}
+        h2 {
+            font-size: 24px;
+            color: #38bdf8;
+            margin-bottom: 24px;
+            line-height: 1.4;
+            font-weight: 600;
+        }
 
-.btn:hover {
-transform: scale(1.05);
-box-shadow: 0 0 10px #4da6ff;
-}
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
 
-/* dica */
-.tip {
-margin-top: 15px;
-padding: 10px;
-border-radius: 10px;
-background: rgba(255,255,255,0.08);
-font-size: 13px;
-color: #ddd;
-}
+        input[type="text"]:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+            outline: none;
+        }
 
-</style></head><body><div id="game">
-<h2 id="title"></h2>
-<p id="text"></p><div>
-<small>Estresse</small>
-<div class="bar"><div id="stressBar" class="fill stress"></div></div>
+        .opcoes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
 
-<small>Energia</small>
-<div class="bar"><div id="energyBar" class="fill energy"></div></div>
+        .opcao-label {
+            display: flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.4);
+            border: 2px solid #334155;
+            padding: 16px 20px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .opcao-label:hover {
+            background: rgba(51, 65, 85, 0.5);
+            border-color: #475569;
+        }
+
+        .opcao-label:has(input:checked) {
+            background: rgba(56, 189, 248, 0.12);
+            border-color: #38bdf8;
+        }
+
+        .opcao-label input[type="radio"] {
+            margin-right: 16px;
+            width: 20px;
+            height: 20px;
+            accent-color: #38bdf8;
+        }
+
+        .botoes-navegacao {
+            margin-top: 30px;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: linear-gradient(90deg, #0ea5e9 0%, #2563eb 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(37, 99, 235, 0.5);
+        }
+
+        button:disabled {
+            background: #334155;
+            color: #64748b;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .resultado-box {
+            text-align: center;
+        }
+        
+        .nota-circulo {
+            width: 120px;
+            height: 120px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 3px solid #38bdf8;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #38bdf8;
+            margin: 20px auto;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+
+        /* Responsividade para celulares */
+        @media (max-width: 600px) {
+            body { padding: 0; }
+            .quiz-container {
+                height: 100%;
+                border-radius: 0;
+                border: none;
+                padding: 30px 20px;
+            }
+            h2 { font-size: 22px; }
+            .opcao-label { padding: 14px 16px; font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="barra-progresso-container">
+    <div class="barra-progresso" id="progresso"></div>
 </div>
 
-<div id="choices"></div>
+<div class="quiz-container">
+    
+    <div class="tela ativa" id="tela-0">
+        <h2>Bem-vindo ao Desafio Tech! 🚀<br><br>Para iniciar a sua prova, por favor digite seu nome completo:</h2>
+        <div class="campo-input">
+            <input type="text" id="nome" placeholder="Seu nome aqui..." autocomplete="off">
+        </div>
+        <div class="botoes-navegacao">
+            <button type="button" onclick="proximaTela(0)">Iniciar Quiz →</button>
+        </div>
+    </div>
 
-</div><script>
+    <div class="tela" id="tela-1">
+        <h2>1. Qual das linguagens abaixo é usada para dar estilo e beleza visual a um site?</h2>
+        <div class="opcoes-container">
+            <label class="opcao-label"><input type="radio" name="Questao_1" value="HTML"> HTML</label>
+            <label class="opcao-label"><input type="radio" name="Questao_1" value="CSS"> CSS</label>
+            <label class="opcao-label"><input type="radio" name="Questao_1" value="Python"> Python</label>
+        </div>
+        <div class="botoes-navegacao">
+            <button type="button" onclick="proximaTela(1)">Avançar →</button>
+        </div>
+    </div>
 
-let stress = 20;
-let energy = 80;
+    <div class="tela" id="tela-2">
+        <h2>2. Qual é a principal função do JavaScript em uma página web?</h2>
+        <div class="opcoes-container">
+            <label class="opcao-label"><input type="radio" name="Questao_2" value="Estrutura"> Criar apenas a estrutura do texto</label>
+            <label class="opcao-label"><input type="radio" name="Questao_2" value="Banco de dados"> Armazena arquivos pesados</label>
+            <label class="opcao-label"><input type="radio" name="Questao_2" value="Interatividade"> Adiciona interatividade e lógica</label>
+        </div>
+        <div class="botoes-navegacao">
+            <button type="button" id="btnEnviar" onclick="enviarEResumir()">Finalizar e Enviar 🚀</button>
+        </div>
+    </div>
 
-const scenes = {
-start: {
-title: "🌅 Manhã",
-text: "Você acorda e lembra da prova.",
-choices: [
-{ text: "📚 Estudar", next: "study" },
-{ text: "😴 Ignorar", next: "ignore" }
-]
-},
+    <div class="tela" id="tela-3">
+        <div class="resultado-box">
+            <h2>Parabéns! Quiz Concluído ✨</h2>
+            <p style="color: #94a3b8; margin-bottom: 10px;">Suas respostas foram enviadas com sucesso para o professor.</p>
+            <p>Sua pontuação automática foi:</p>
+            <div class="nota-circulo" id="notaVisual">0 / 2</div>
+            <p id="mensagemFinal" style="font-weight: 600; font-size: 18px; color: #34d399;"></p>
+        </div>
+    </div>
 
-study: {
-text: "Você revisa e se sente mais seguro.",
-effect: () => { stress -= 10; energy -= 10; },
-next: "school"
-},
+</div>
 
-ignore: {
-text: "A ansiedade começa a crescer.",
-effect: () => { stress += 15; },
-next: "school"
-},
+<script>
+    const totalTelas = 4;
+    const gabarito = {
+        "Questao_1": "CSS",
+        "Questao_2": "Interatividade"
+    };
 
-school: {
-title: "🏫 Escola",
-text: "Hora da prova.",
-choices: [
-{ text: "😌 Respirar e tentar", next: "try" },
-{ text: "😨 Entrar em pânico", next: "panic" }
-]
-},
+    // --- SISTEMA DE ANTICOLA E PERSISTÊNCIA ---
 
-try: {
-text: "Você se controla e consegue fazer.",
-effect: () => { stress -= 5; },
-next: "end_good"
-},
+    window.onload = function() {
+        atualizarProgresso(0);
+        if (localStorage.getItem("aluno_bloqueado") === "sim") {
+            aplicarTravamentoVisual("Prova anulada por tentativa de cola (Tentativa de burlar pelo F5).");
+        }
+    };
 
-panic: {
-text: "Você trava e perde o foco.",
-effect: () => { stress += 20; },
-next: "end_bad"
-},
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', event => {
+        if (event.ctrlKey && (event.key === 'c' || event.key === 'v' || event.key === 'u' || event.key === 'r')) {
+            event.preventDefault();
+            alert("Comando bloqueado nesta prova!");
+        }
+    });
 
-end_good: {
-title: "✨ Bom resultado",
-text: "Você lidou bem hoje.",
-tip: "Respiração reduz ansiedade real.",
-end: true
-},
+    let tentativasSaida = 0;
+    document.addEventListener('visibilitychange', () => {
+        const nomeAluno = document.getElementById('nome').value;
+        if (nomeAluno.trim() === "") return; 
 
-end_bad: {
-title: "💭 Dia difícil",
-text: "Nem sempre é fácil.",
-tip: "Pedir ajuda é uma estratégia forte.",
-end: true
-}
-};
+        if (document.hidden) {
+            tentativasSaida++;
+            if (tentativasSaida === 1) {
+                alert("AVISO: Não saia da aba da prova! Se fizer de novo, sua prova será zerada automaticamente.");
+            } else if (tentativasSaida >= 2) {
+                anularProvaPorCola(nomeAluno);
+            }
+        }
+    });
 
-function updateBars() {
-document.getElementById("stressBar").style.width = stress + "%";
-document.getElementById("energyBar").style.width = energy + "%";
-}
+    function anularProvaPorCola(nomeAluno) {
+        localStorage.setItem("aluno_bloqueado", "sim");
 
-function render(sceneKey) {
-const scene = scenes[sceneKey];
+        const dadosCola = new FormData();
+        dadosCola.append("Nome do Aluno", nomeAluno + " ⚠️ (TRAVA ACIONADA)");
+        dadosCola.append("STATUS DA PROVA", "ANULADA POR TENTATIVA DE COLA");
+        dadosCola.append("Total de Acertos", "0 de 2");
 
-document.getElementById("title").innerText = scene.title || "";
-document.getElementById("text").innerText = scene.text;
+        fetch("https://formspree.io/f/xaqzydnw", {
+            method: "POST",
+            body: dadosCola,
+            headers: { 'Accept': 'application/json' }
+        });
 
-if (scene.effect) scene.effect();
+        aplicarTravamentoVisual("Prova anulada por tentativa de cola. O professor foi notificado.");
+    }
 
-updateBars();
+    function aplicarTravamentoVisual(mensagem) {
+        document.querySelector('.quiz-container').innerHTML = `
+            <div style="text-align:center; padding: 20px;">
+                <h2 style="color:#ef4444; font-size: 28px;">⚠️ BLOQUEADO</h2>
+                <p style="margin-top: 20px; font-size: 18px; color: #94a3b8;">${mensagem}</p>
+            </div>
+        `;
+        document.getElementById('progresso').style.backgroundColor = "#ef4444";
+        document.getElementById('progresso').style.width = "100%";
+    }
 
-const choicesDiv = document.getElementById("choices");
-choicesDiv.innerHTML = "";
+    function verificarBloqueio() {
+        return localStorage.getItem("aluno_bloqueado") === "sim";
+    }
 
-if (scene.choices) {
-scene.choices.forEach(choice => {
-const btn = document.createElement("button");
-btn.innerText = choice.text;
-btn.className = "btn";
-btn.onclick = () => render(choice.next);
-choicesDiv.appendChild(btn);
-});
-} else if (scene.next) {
-const btn = document.createElement("button");
-btn.innerText = "Continuar";
-btn.className = "btn";
-btn.onclick = () => render(scene.next);
-choicesDiv.appendChild(btn);
-}
+    // --- NAVEGAÇÃO DO QUIZ ---
 
-if (scene.tip) {
-const tip = document.createElement("div");
-tip.className = "tip";
-tip.innerText = scene.tip;
-choicesDiv.appendChild(tip);
-}
+    function atualizarProgresso(telaAtual) {
+        const porcentagem = (telaAtual / (totalTelas - 1)) * 100;
+        document.getElementById('progresso').style.width = porcentagem + '%';
+    }
 
-if (scene.end) {
-const restart = document.createElement("button");
-restart.innerText = "🔄 Recomeçar";
-restart.className = "btn";
-restart.onclick = () => location.reload();
-choicesDiv.appendChild(restart);
-}
-}
+    function proximaTela(telaAtual) {
+        if (verificarBloqueio()) return;
 
-render("start");
+        if (telaAtual === 0) {
+            const nomeInput = document.getElementById('nome');
+            if (nomeInput.value.trim() === "") {
+                alert("Por favor, preencha seu nome!");
+                nomeInput.focus();
+                return;
+            }
+        }
 
-</script></body>
+        if (telaAtual > 0 && telaAtual < totalTelas - 2) {
+            const marcado = document.querySelector(`input[name="Questao_${telaAtual}"]:checked`);
+            if (!marcado) {
+                alert("Selecione uma alternativa antes de continuar!");
+                return;
+            }
+        }
+
+        document.getElementById(`tela-${telaAtual}`).classList.remove('ativa');
+        const proxima = telaAtual + 1;
+        document.getElementById(`tela-${proxima}`).classList.add('ativa');
+        atualizarProgresso(proxima);
+    }
+
+    function enviarEResumir() {
+        if (verificarBloqueio()) return;
+
+        const q2Marcada = document.querySelector('input[name="Questao_2"]:checked');
+        if (!q2Marcada) {
+            alert("Selecione uma alternativa antes de finalizar!");
+            return;
+        }
+
+        const btn = document.getElementById('btnEnviar');
+        btn.disabled = true;
+        btn.innerText = "Enviando...";
+
+        const nomeAluno = document.getElementById('nome').value;
+        const resp1 = document.querySelector('input[name="Questao_1"]:checked').value;
+        const resp2 = q2Marcada.value;
+
+        let acertos = 0;
+        if (resp1 === gabarito.Questao_1) acertos++;
+        if (resp2 === gabarito.Questao_2) acertos++;
+
+        const dadosFormulario = new FormData();
+        dadosFormulario.append("Nome do Aluno", nomeAluno);
+        dadosFormulario.append("Resposta Questão 1", resp1);
+        dadosFormulario.append("Resposta Questão 2", resp2);
+        dadosFormulario.append("Total de Acertos", `${acertos} de 2`);
+
+        fetch("https://formspree.io/f/xaqzydnw", {
+            method: "POST",
+            body: dadosFormulario,
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(response => {
+            if (response.ok) {
+                document.getElementById('tela-2').classList.remove('ativa');
+                document.getElementById('tela-3').classList.add('ativa');
+                atualizarProgresso(3);
+
+                document.getElementById('notaVisual').innerText = `${acertos} / 2`;
+                const msg = document.getElementById('mensagemFinal');
+                if (acertos === 2) { msg.innerText = "Excelente! Você gabaritou! 🏆"; }
+                else if (acertos === 1) { msg.innerText = "Bom trabalho! Pelo menos metade já foi. 👍"; }
+                else { msg.innerText = "Não desanime, estude um pouco mais! 📚"; }
+            } else {
+                alert("Ocorreu um erro ao enviar.");
+                btn.disabled = false;
+                btn.innerText = "Finalizar e Enviar 🚀";
+            }
+        });
+    }
+</script>
+
+</body>
 </html>
